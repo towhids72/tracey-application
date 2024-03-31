@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 from httpx import AsyncClient
 from fastapi import status
@@ -25,6 +27,10 @@ async def test_valid_shipment_transform_to_tracey(async_client: AsyncClient, acc
 
 @pytest.mark.asyncio
 async def test_invalid_shipment_transform_to_tracey(async_client: AsyncClient, access_token: str):
+    # Note: The DHL API has a rate limit of one request every 5 seconds.
+    # Since we have made a call to it in the previous test, to prevent potential
+    # rate limit errors, it's advisable to wait for 5 seconds before making the next request.
+    await asyncio.sleep(5)
     response = await async_client.get(
         url='/v1/track/shipments',
         params={
