@@ -7,7 +7,7 @@ class Token(BaseModel):
 
 
 class User(BaseModel):
-    username: str
+    username: str = Field(min_length=5)
     email: EmailStr
 
 
