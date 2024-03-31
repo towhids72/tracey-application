@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  tracey_api:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    hostname: tracey_api
+    container_name: tracey_api
+    depends_on:
+      tracey_postgres:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    environment:
+      - DOCKER_ENV="1"
+
+    command: "poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  tracey_postgres:
+    image: postgres:16.2-alpine
+    hostname: tracey_postgres
+    container_name: tracey_postgres
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-postgres:/var/lib/postgresql/data
+      - ./scripts/database_setup.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db-postgres:
+    driver: local
